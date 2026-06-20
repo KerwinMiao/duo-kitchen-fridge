@@ -1,0 +1,18 @@
+{
+  "name": "双人小餐桌",
+  "short_name": "小餐桌",
+  "description": "两个人一起管理冰箱、今日餐桌和家庭菜谱。",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f7fbf5",
+  "theme_color": "#dfeee5",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
