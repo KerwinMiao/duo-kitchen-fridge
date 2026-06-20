@@ -65,6 +65,21 @@ const categoryLabels = {
   other: "其他"
 };
 
+const categoryEmoji = {
+  meat: "🥩",
+  seafood: "🐟",
+  vegetable: "🥬",
+  fruit: "🍎",
+  eggDairy: "🥚",
+  staple: "🍚",
+  drink: "🥛",
+  seasoning: "🧂",
+  frozen: "🧊",
+  leftover: "🍱",
+  snack: "🍪",
+  other: "🍽"
+};
+
 const mealSlots = [
   { id: "breakfast", label: "早餐" },
   { id: "lunch", label: "午餐" },
@@ -363,6 +378,7 @@ function renderAvatar(member) {
 function renderFridgePage() {
   const items = state.ingredients.filter((item) => item.zone === state.selectedZone);
   const hasFridgeAsset = Boolean(illustrationAssets.fridgeOpen || illustrationAssets.fridgeClosed || illustrationAssets.fridge);
+  const fridgeOpen = state.fridgeOpen !== false;
   const openContent = `
     ${renderZoneSelector()}
 
@@ -391,6 +407,11 @@ function renderFridgePage() {
     </section>
 
     <section class="fridge-stage ${hasFridgeAsset ? "has-asset" : ""}">${renderFridgeVisual()}</section>
+    <div class="fridge-toggle-row">
+      <button class="paper-button fridge-toggle-button" type="button" data-action="toggle-fridge">
+        ${fridgeOpen ? "关上冰箱" : "打开冰箱"}
+      </button>
+    </div>
     ${openContent}
   `;
 }
@@ -415,7 +436,7 @@ function renderFridgeVisual() {
     return `
       <div class="illustration-shell fridge-asset-shell ${fridgeOpen ? "is-open" : "is-closed"}">
         <button class="fridge-asset-button" type="button" data-action="toggle-fridge" aria-label="${fridgeOpen ? "关上冰箱" : "打开冰箱"}" aria-pressed="${fridgeOpen ? "true" : "false"}">
-          <img class="fridge-state-image" src="${fridgeSrc}" alt="${fridgeOpen ? "打开的冰箱" : "关门的冰箱"}" />
+          <img class="fridge-state-image" src="${fridgeSrc}" alt="${fridgeOpen ? "打开的冰箱" : "关门的冰箱"}" data-fallback-src="${illustrationAssets.fridge || ""}" />
         </button>
         ${
           fridgeOpen
@@ -1294,13 +1315,18 @@ function recipeToStepLines(recipe) {
 function foodIcon(type) {
   const src = categoryAssets[type] || categoryAssets.other;
   const label = categoryLabels[type] || "食材";
-  return `<img class="food-icon-image" src="${src}" alt="${label}贴纸" loading="lazy" />`;
+  return `
+    <span class="food-icon-wrap" aria-label="${label}贴纸">
+      <span class="food-icon-fallback" aria-hidden="true">${categoryEmoji[type] || categoryEmoji.other}</span>
+      <img class="food-icon-image" src="${src}" alt="" data-food-icon />
+    </span>
+  `;
 }
 
 function recipeIcon() {
   return `
-    <img class="food-icon-image" src="${categoryAssets.vegetable}" alt="蔬菜贴纸" loading="lazy" />
-    <img class="food-icon-image" src="${categoryAssets.eggDairy}" alt="蛋奶贴纸" loading="lazy" />
+    ${foodIcon("vegetable")}
+    ${foodIcon("eggDairy")}
   `;
 }
 
@@ -2067,6 +2093,23 @@ app.addEventListener("change", async (event) => {
     setCustomMusic(musicUpload.files?.[0]);
   }
 });
+
+app.addEventListener(
+  "error",
+  (event) => {
+    const image = event.target;
+    if (!(image instanceof HTMLImageElement)) return;
+    if (image.dataset.foodIcon !== undefined) {
+      image.hidden = true;
+      return;
+    }
+    const fallback = image.dataset.fallbackSrc;
+    if (fallback && image.src !== new URL(fallback, window.location.href).href) {
+      image.src = fallback;
+    }
+  },
+  true
+);
 
 app.addEventListener("dragover", (event) => {
   if (event.target.closest(".music-drop-zone")) {

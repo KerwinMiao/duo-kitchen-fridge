@@ -474,6 +474,18 @@ button {
   place-items: start center;
 }
 
+.fridge-toggle-row {
+  display: flex;
+  justify-content: center;
+  margin: -8px 0 12px;
+}
+
+.fridge-toggle-button {
+  min-height: 42px;
+  padding: 8px 18px;
+  font-size: 17px;
+}
+
 .simple-fridge {
   width: min(100%, 318px);
   height: 420px;
@@ -581,7 +593,7 @@ button {
   pointer-events: auto;
 }
 
-.fridge-food-sticker .food-icon-image {
+.fridge-food-sticker .food-icon-wrap {
   width: 44px;
   height: 44px;
   filter: drop-shadow(0 2px 1px rgba(62, 56, 45, 0.12));
@@ -1033,7 +1045,27 @@ button {
   overflow: hidden;
 }
 
+.food-icon-wrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.food-icon-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255, 253, 247, 0.88);
+  font-size: 24px;
+  line-height: 1;
+}
+
 .food-icon-image {
+  position: relative;
   display: block;
   width: 100%;
   height: 100%;
@@ -1045,7 +1077,7 @@ button {
   gap: 0;
 }
 
-.recipe-plate .food-icon-image {
+.recipe-plate .food-icon-wrap {
   width: 34px;
   height: 34px;
   margin-inline: -5px;
@@ -1539,7 +1571,7 @@ button {
   scroll-snap-align: center;
 }
 
-.category-choice .food-icon-image {
+.category-choice .food-icon-wrap {
   width: 54px;
   height: 54px;
   filter: drop-shadow(0 2px 1px rgba(62, 56, 45, 0.12));
