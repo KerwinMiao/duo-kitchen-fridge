@@ -859,7 +859,8 @@ function renderSyncDrawer() {
     </form>
     <form class="form-card" data-form="syncLogin">
       <label>邮箱<input name="email" type="email" value="${escapeAttribute(settings.email || "")}" placeholder="你们各自的邮箱" /></label>
-      <label>密码<input name="password" type="password" minlength="6" placeholder="至少 6 位" /></label>
+      <label>密码<input name="password" type="password" minlength="6" autocomplete="current-password" placeholder="至少 6 位，注册和登录都要用" /></label>
+      <p class="form-hint">第一次注册后需要去邮箱点确认邮件，然后回到这里点“登录”。</p>
       <div class="action-row">
         <button class="wood-button" type="submit" name="mode" value="signIn">登录</button>
         <button class="paper-button" type="submit" name="mode" value="signUp">注册账号</button>
@@ -1637,19 +1638,51 @@ async function signInToCloud(formData) {
   const password = String(formData.get("password") || "");
   const mode = formData.get("mode") || "signIn";
   saveSyncSettings({ email });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    syncMessage = "先填一个正确的邮箱地址。";
+    showToast("邮箱格式不对。");
+    return;
+  }
+  if (password.length < 6) {
+    syncMessage = "密码至少要 6 位。你刚才如果填得太短，Supabase 会直接拒绝注册。";
+    showToast("密码至少 6 位。");
+    return;
+  }
+  syncMessage = mode === "signUp" ? "正在注册账号..." : "正在登录...";
+  render();
   const result = mode === "signUp"
     ? await client.auth.signUp({ email, password })
     : await client.auth.signInWithPassword({ email, password });
   if (result.error) {
-    syncMessage = result.error.message;
-    showToast(mode === "signUp" ? "注册失败，请检查邮箱和密码。" : "登录失败，请检查邮箱和密码。");
+    syncUser = null;
+    syncMessage = friendlyAuthError(result.error.message, mode);
+    showToast(mode === "signUp" ? "注册失败，原因已经写在同步卡片里。" : "登录失败，原因已经写在同步卡片里。");
     return;
   }
-  syncUser = result.data.user || result.data.session?.user || null;
-  syncMessage = mode === "signUp" && !result.data.session ? "账号已创建，请先去邮箱确认，再回来登录。" : "登录成功，正在同步。";
+  syncUser = result.data.session?.user || null;
+  if (mode === "signUp" && !result.data.session) {
+    syncMessage = "注册邮件已发出。请先去邮箱点确认链接，然后回到这里用同一邮箱和密码点“登录”。如果邮箱已经注册过，也可以直接点“登录”。";
+    showToast("请先确认邮箱。");
+    render();
+    return;
+  }
+  syncMessage = "登录成功，正在同步。";
   if (syncUser) await pullCloudState(false);
   playSoftSound("done");
-  showToast(syncUser ? "云同步已登录。" : "请先确认邮箱。");
+  showToast("云同步已登录。");
+}
+
+function friendlyAuthError(message, mode) {
+  const text = String(message || "");
+  const lower = text.toLowerCase();
+  if (lower.includes("password should be at least") || lower.includes("weak_password")) return "密码至少要 6 位。请换一个 6 位以上的密码再试。";
+  if (lower.includes("invalid login credentials")) return "邮箱或密码不对。如果刚注册，请先去邮箱点确认邮件，再回来登录。";
+  if (lower.includes("email not confirmed")) return "这个邮箱还没有确认。请去邮箱里点 Supabase 发来的确认链接。";
+  if (lower.includes("already registered") || lower.includes("user already registered")) return "这个邮箱已经注册过了，直接点“登录”就行。";
+  if (lower.includes("signup is disabled") || lower.includes("signups not allowed")) return "Supabase 后台关闭了注册，需要在 Authentication 里打开 Email Signup。";
+  if (lower.includes("rate limit") || lower.includes("too many")) return "尝试太频繁了，Supabase 暂时限流。等一两分钟再试。";
+  if (lower.includes("network") || lower.includes("failed to fetch")) return "网络连 Supabase 失败。换个网络或稍后再试。";
+  return `${mode === "signUp" ? "注册" : "登录"}失败：${text || "未知错误"}`;
 }
 
 async function signOutCloud() {

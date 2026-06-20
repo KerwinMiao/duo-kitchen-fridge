@@ -1755,6 +1755,13 @@ button {
   resize: vertical;
 }
 
+.form-hint {
+  margin: -3px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
