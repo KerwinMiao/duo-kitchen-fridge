@@ -845,22 +845,17 @@ function renderSyncDrawer() {
   const settings = loadSyncSettings();
   const projectReady = Boolean(settings.url && settings.key);
   return `
-    ${renderDrawerHead("双人同步", "免费 Supabase 项目连接后可用")}
+    ${renderDrawerHead("双人同步", "两个人用同一个小家暗号就能同步")}
     <div class="sync-status-card ${syncUser ? "is-online" : ""}">
-      <strong>${syncUser ? "已经登录" : projectReady ? "项目已配置，等待登录" : "还没有填 Supabase 配置"}</strong>
+      <strong>${syncUser ? "已经登录" : projectReady ? "可以注册或登录" : "同步项目还没配置好"}</strong>
       <p>${escapeHtml(syncMessage)}</p>
       ${syncUser ? `<small>${escapeHtml(syncUser.email || "")} · 家庭码 ${escapeHtml(syncHouseholdId || settings.householdId || "未设置")}</small>` : ""}
     </div>
-    <form class="form-card" data-form="syncProject">
-      <label>Supabase URL<input name="url" value="${escapeAttribute(settings.url || "")}" placeholder="https://xxxx.supabase.co" /></label>
-      <label>Anon Key<input name="key" value="${escapeAttribute(settings.key || "")}" placeholder="项目里的 anon public key" /></label>
-      <label>家庭码<input name="householdId" value="${escapeAttribute(settings.householdId || "our-kitchen")}" placeholder="比如 our-kitchen" /></label>
-      <button class="paper-button" type="submit">保存同步配置</button>
-    </form>
-    <form class="form-card" data-form="syncLogin">
-      <label>邮箱<input name="email" type="email" value="${escapeAttribute(settings.email || "")}" placeholder="你们各自的邮箱" /></label>
-      <label>密码<input name="password" type="password" minlength="6" autocomplete="current-password" placeholder="至少 6 位，注册和登录都要用" /></label>
-      <p class="form-hint">第一次注册后需要去邮箱点确认邮件，然后回到这里点“登录”。</p>
+    <form class="form-card sync-login-card" data-form="syncLogin">
+      <label>你的邮箱<input name="email" type="email" required value="${escapeAttribute(settings.email || "")}" placeholder="比如 name@example.com" /></label>
+      <label>设置一个密码<input name="password" type="password" required minlength="6" autocomplete="current-password" placeholder="至少 6 位，自己记住" /></label>
+      <label>小家暗号<input name="householdId" value="${escapeAttribute(settings.householdId || "our-kitchen")}" placeholder="两个人填一样，比如 our-kitchen" /></label>
+      <p class="form-hint">第一次用点“注册账号”，然后去邮箱确认；确认后回到这里点“登录”。另一个人用自己的邮箱注册，但“小家暗号”填一样。</p>
       <div class="action-row">
         <button class="wood-button" type="submit" name="mode" value="signIn">登录</button>
         <button class="paper-button" type="submit" name="mode" value="signUp">注册账号</button>
@@ -871,6 +866,15 @@ function renderSyncDrawer() {
       <button class="paper-button" data-action="cloud-push">上传当前数据</button>
       ${syncUser ? `<button class="mini-button" data-action="cloud-signout">退出登录</button>` : ""}
     </div>
+    <details class="sync-advanced">
+      <summary>高级设置：Supabase 连接</summary>
+      <form class="form-card" data-form="syncProject">
+        <label>Supabase URL<input name="url" value="${escapeAttribute(settings.url || "")}" placeholder="https://xxxx.supabase.co" /></label>
+        <label>Anon Key<input name="key" value="${escapeAttribute(settings.key || "")}" placeholder="项目里的 anon public key" /></label>
+        <label>默认小家暗号<input name="householdId" value="${escapeAttribute(settings.householdId || "our-kitchen")}" placeholder="比如 our-kitchen" /></label>
+        <button class="paper-button" type="submit">保存高级设置</button>
+      </form>
+    </details>
   `;
 }
 
@@ -1387,13 +1391,13 @@ function playSoftSound(kind = "tap") {
 
 function playFridgeDoorSound(context, now, closing = false) {
   const duration = closing ? 0.24 : 0.32;
-  playFilteredNoise(context, now, duration, closing ? 520 : 760, closing ? 0.065 : 0.045);
+  playFilteredNoise(context, now, duration, closing ? 520 : 760, closing ? 0.11 : 0.082);
   if (closing) {
-    playTone(context, 130, 92, 0.13, 0.035, now + 0.08);
-    playTone(context, 72, 58, 0.18, 0.02, now + 0.16);
+    playTone(context, 130, 92, 0.13, 0.058, now + 0.08);
+    playTone(context, 72, 58, 0.18, 0.034, now + 0.16);
   } else {
-    playTone(context, 105, 150, 0.16, 0.018, now + 0.04);
-    playTone(context, 260, 190, 0.08, 0.012, now + 0.18);
+    playTone(context, 105, 150, 0.16, 0.032, now + 0.04);
+    playTone(context, 260, 190, 0.08, 0.022, now + 0.18);
   }
 }
 
@@ -1637,15 +1641,16 @@ async function signInToCloud(formData) {
   const email = String(formData.get("email") || "").trim();
   const password = String(formData.get("password") || "");
   const mode = formData.get("mode") || "signIn";
-  saveSyncSettings({ email });
+  const householdId = String(formData.get("householdId") || "").trim() || loadSyncSettings().householdId || "our-kitchen";
+  saveSyncSettings({ email, householdId });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     syncMessage = "先填一个正确的邮箱地址。";
     showToast("邮箱格式不对。");
     return;
   }
   if (password.length < 6) {
-    syncMessage = "密码至少要 6 位。你刚才如果填得太短，Supabase 会直接拒绝注册。";
-    showToast("密码至少 6 位。");
+    syncMessage = "先在密码框里填一个至少 6 位的密码。注册和以后登录都要用这个密码。";
+    showToast("先填密码，至少 6 位。");
     return;
   }
   syncMessage = mode === "signUp" ? "正在注册账号..." : "正在登录...";
