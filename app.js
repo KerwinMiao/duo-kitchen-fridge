@@ -8,8 +8,8 @@ const DEFAULT_SYNC_SETTINGS = {
 };
 
 const illustrationAssets = {
-  fridgeOpen: "./assets/illustrations/fridge-open.png",
-  fridgeClosed: "./assets/illustrations/fridge-closed.png",
+  fridgeOpen: "./assets/illustrations/fridge-open-mobile.jpg",
+  fridgeClosed: "./assets/illustrations/fridge-closed-mobile.jpg",
   fridge: "./assets/illustrations/fridge-empty-v1.png",
   table: "",
   recipe: ""
@@ -2080,24 +2080,6 @@ app.addEventListener("drop", (event) => {
   event.preventDefault();
   const file = [...event.dataTransfer.files].find((entry) => entry.type.startsWith("audio/"));
   setCustomMusic(file);
-});
-
-let touchStartX = 0;
-app.addEventListener("touchstart", (event) => {
-  touchStartX = event.touches[0]?.clientX || 0;
-});
-
-app.addEventListener("touchend", (event) => {
-  const endX = event.changedTouches[0]?.clientX || 0;
-  const delta = endX - touchStartX;
-  if (Math.abs(delta) < 72 || state.drawer || state.cooking) return;
-  const index = navItems.findIndex((item) => item.id === state.activeTab);
-  const nextIndex = delta < 0 ? Math.min(index + 1, navItems.length - 1) : Math.max(index - 1, 0);
-  if (nextIndex !== index) {
-    state.activeTab = navItems[nextIndex].id;
-    persist();
-    render();
-  }
 });
 
 if ("serviceWorker" in navigator) {

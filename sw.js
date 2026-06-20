@@ -1,14 +1,14 @@
-const CACHE_NAME = "duo-kitchen-v28";
+const CACHE_NAME = "duo-kitchen-v29";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=28",
-  "./app.js?v=28",
+  "./styles.css?v=29",
+  "./app.js?v=29",
   "./manifest.webmanifest",
   "./assets/icon.svg",
   "./assets/illustrations/fridge-empty-v1.png",
-  "./assets/illustrations/fridge-open.png",
-  "./assets/illustrations/fridge-closed.png",
+  "./assets/illustrations/fridge-open-mobile.jpg",
+  "./assets/illustrations/fridge-closed-mobile.jpg",
   "./assets/food/meat.png",
   "./assets/food/seafood.png",
   "./assets/food/vegetable.png",
