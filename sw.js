@@ -1,26 +1,13 @@
-const CACHE_NAME = "duo-kitchen-v30";
+const CACHE_NAME = "duo-kitchen-v31";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=30",
-  "./app.js?v=30",
+  "./styles.css?v=31",
+  "./app.js?v=31",
   "./manifest.webmanifest",
   "./assets/icon.svg",
-  "./assets/illustrations/fridge-empty-v1.png",
   "./assets/illustrations/fridge-open-mobile.jpg",
-  "./assets/illustrations/fridge-closed-mobile.jpg",
-  "./assets/food/meat.png",
-  "./assets/food/seafood.png",
-  "./assets/food/vegetable.png",
-  "./assets/food/fruit.png",
-  "./assets/food/eggDairy.png",
-  "./assets/food/staple.png",
-  "./assets/food/drink.png",
-  "./assets/food/seasoning.png",
-  "./assets/food/frozen.png",
-  "./assets/food/leftover.png",
-  "./assets/food/snack.png",
-  "./assets/food/other.png"
+  "./assets/illustrations/fridge-closed-mobile.jpg"
 ];
 
 self.addEventListener("install", (event) => {

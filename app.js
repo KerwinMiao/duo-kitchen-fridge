@@ -10,7 +10,7 @@ const DEFAULT_SYNC_SETTINGS = {
 const illustrationAssets = {
   fridgeOpen: "./assets/illustrations/fridge-open-mobile.jpg",
   fridgeClosed: "./assets/illustrations/fridge-closed-mobile.jpg",
-  fridge: "./assets/illustrations/fridge-empty-v1.png",
+  fridge: "./assets/illustrations/fridge-open-mobile.jpg",
   table: "",
   recipe: ""
 };
@@ -436,7 +436,7 @@ function renderFridgeVisual() {
     return `
       <div class="illustration-shell fridge-asset-shell ${fridgeOpen ? "is-open" : "is-closed"}">
         <button class="fridge-asset-button" type="button" data-action="toggle-fridge" aria-label="${fridgeOpen ? "关上冰箱" : "打开冰箱"}" aria-pressed="${fridgeOpen ? "true" : "false"}">
-          <img class="fridge-state-image" src="${fridgeSrc}" alt="${fridgeOpen ? "打开的冰箱" : "关门的冰箱"}" data-fallback-src="${illustrationAssets.fridge || ""}" />
+          <img class="fridge-state-image" src="${fridgeSrc}" alt="${fridgeOpen ? "打开的冰箱" : "关门的冰箱"}" data-fallback-src="${illustrationAssets.fridge || ""}" decoding="async" fetchpriority="high" />
         </button>
         ${
           fridgeOpen
@@ -1313,12 +1313,10 @@ function recipeToStepLines(recipe) {
 }
 
 function foodIcon(type) {
-  const src = categoryAssets[type] || categoryAssets.other;
   const label = categoryLabels[type] || "食材";
   return `
     <span class="food-icon-wrap" aria-label="${label}贴纸">
       <span class="food-icon-fallback" aria-hidden="true">${categoryEmoji[type] || categoryEmoji.other}</span>
-      <img class="food-icon-image" src="${src}" alt="" data-food-icon />
     </span>
   `;
 }
@@ -2127,7 +2125,9 @@ app.addEventListener("drop", (event) => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch(() => {});
+    window.setTimeout(() => {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    }, 2500);
   });
 }
 
@@ -2142,4 +2142,14 @@ setInterval(() => {
 }, 60 * 1000);
 
 render();
-bootCloudSync();
+const startCloudSync = () => {
+  window.setTimeout(() => {
+    bootCloudSync();
+  }, 1800);
+};
+
+if ("requestIdleCallback" in window) {
+  window.requestIdleCallback(startCloudSync, { timeout: 3600 });
+} else {
+  startCloudSync();
+}
