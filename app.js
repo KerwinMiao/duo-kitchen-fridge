@@ -1,6 +1,11 @@
 const STORAGE_KEY = "duo-kitchen-phase1";
 const SYNC_SETTINGS_KEY = "duo-kitchen-sync-settings";
 const SCHEMA_VERSION = 13;
+const DEFAULT_SYNC_SETTINGS = {
+  url: "https://gnaggnujcskjyeeulbos.supabase.co",
+  key: "sb_publishable_QorZ2Q2Z2V45qRsjffy2lg_lpuQJngc",
+  householdId: "our-kitchen"
+};
 
 const illustrationAssets = {
   fridgeOpen: "./assets/illustrations/fridge-open.png",
@@ -1480,9 +1485,9 @@ function clearCustomMusic() {
 
 function loadSyncSettings() {
   try {
-    return { householdId: "our-kitchen", ...JSON.parse(localStorage.getItem(SYNC_SETTINGS_KEY)) };
+    return { ...DEFAULT_SYNC_SETTINGS, ...JSON.parse(localStorage.getItem(SYNC_SETTINGS_KEY)) };
   } catch {
-    return { url: "", key: "", email: "", householdId: "our-kitchen" };
+    return { ...DEFAULT_SYNC_SETTINGS, email: "" };
   }
 }
 
